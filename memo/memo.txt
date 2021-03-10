@@ -1,34 +1,91 @@
-### 環境設定 -----
+### 環境設定 (for Amazon Linux) -----
 
-# PHP 設定
+## PHP設定
 php --version
-# PHP 5.6.40 (cli) (built: Oct 31 2019 20:35:16) 
+# Amazon Linux default
+# PHP 5.6.40
 
-# PDO 設定
+sudo yum update -y
+# sudo yum -y install php72 php72-mbstring php72-pdo
+sudo yum -y install php72 php72-mbstring php72-pdo php72-intl php72-pdo_mysql php72-pdo_pgsql php72-xdebug php72-opcache php72-apcu
+sudo unlink /usr/bin/php
+sudo ln -s /etc/alternatives/php7 /usr/bin/php
+php --version
+# PHP 7.2.34 (cli) (built: Oct 21 2020 19:52:01) ( NTS )
+
+## MySQL設定
 mysql --version
-#mysql  Ver 14.14 Distrib 5.5.62, for Linux (x86_64) using readline 5.1
+# mysql  Ver 14.14 Distrib 5.5.62, for Linux (x86_64) using readline 5.1
 
-# 日本語設定
+sudo service mysqld start
+mysql -u root
+show variables like '%char%';
+exit;
+
 sed -e "/utf8/d" -e "/client/d" -e "/^\[mysqld_safe\]$/i character-set-server=utf8\n\n[client]\ndefault-character-set=utf8" /etc/my.cnf |sudo tee /etc/my.cnf
+sudo service mysqld restart
+mysql -u root
+show variables like '%char%';
+exit;
+
+## システム時間の設定
+date
+echo "Asia/Tokyo" | sudo tee /etc/timezone
+sudo mysql_tzinfo_to_sql /usr/share/zoneinfo
+sudo cp /etc/sysconfig/clock /etc/sysconfig/clock.org
+sudo vi /etc/sysconfig/clock
+## 書き換え
+ZONE="Asia/Tokyo"
+UTC=true
+
+sudo ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+sudo reboot
+date
+
+## PDO接続できるかの確認
 
 php -m | grep pdo
-# pdo_mysql
-# pdo_sqlite
-
-# pdo_mysql がない場合
-sudo yum -y install php71 php71-mbstring php71-pdo
 
 ###  MySQL ----
+
+## MySQL起動
+sudo service mysqld start
+
+## 管理者権限でMySQLのにログイン
+mysql -u root
+
+## データベース一覧表示
+show databases;
+
+## 新規データベース作成
 create database bbs character set utf8;
 
+## 使うデータベース指定
+use bbs;
+
+##　テーブル作成
 create table messages(
-id int primary key auto_increment, 
-name varchar(50) not null,
-title varchar(50) not null,
-body varchar(100) not null,
-image varchar(100) not null,
-created_at timestamp default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    id int primary key auto_increment, 
+    name varchar(50) not null,
+    title varchar(50) not null,
+    body varchar(100) not null,
+    image varchar(100) not null,
+    created_at timestamp default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-insert into messages(name, title, body, image) values("山田太郎", "初めての投稿", "秋ですね", "  | 10340061875fa379c814a778.77912766");
+##テーブル一覧表示
+show tables;
 
+## テーブル構造確認
+describe messages;
+
+## ダミーデータ追加
+insert into messages(name, title, body, image) values("山田太郎", "初めての投稿", "秋ですね", "17803272185fc1db463ba745.10636856.jpg");
+
+## テーブルデータ表示
+select * from messages;
+
+## Git/Github
+git init
+git add .
+git commit -m "xxx";
